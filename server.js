@@ -1,9 +1,14 @@
 const express = require('express');
+const cors = require('cors'); // Import CORS middleware
 const app = express();
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 require('dotenv').config();
+
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+
+// Enable CORS for all routes
+app.use(cors()); 
 
 const studentSchema = new mongoose.Schema({
   name: {
@@ -27,11 +32,15 @@ const studentSchema = new mongoose.Schema({
 const Student = mongoose.model('Student', studentSchema);
 
 app.use(bodyParser.json());
+
 app.get('/test', (req, res) => {
   res.json({ message: 'Hello from the backend' });
 });
+
 app.get('/students', (req, res) => {
-  Student.find().then(students => res.json(students));
+  const { name } = req.query;
+  const query = name ? { name: new RegExp(name, 'i') } : {};
+  Student.find(query).then(students => res.json(students));
 });
 
 app.post('/students', (req, res) => {
@@ -60,4 +69,3 @@ app.delete('/students/:id', (req, res) => {
 
 const PORT = process.env.PORT || 3010;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
