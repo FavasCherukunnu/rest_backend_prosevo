@@ -8,7 +8,7 @@ require('dotenv').config();
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
 // Enable CORS for all routes
-app.use(cors()); 
+app.use(cors());
 
 const studentSchema = new mongoose.Schema({
   name: {
@@ -64,7 +64,9 @@ app.put('/students/:id', (req, res) => {
 });
 
 app.delete('/students/:id', (req, res) => {
-  Student.findByIdAndRemove(req.params.id).then(() => res.json({ message: 'Student deleted' }));
+  Student.findByIdAndDelete(req.params.id).then(() => res.json({ message: 'Student deleted' })).catch(err => {
+    res.status(400).json({ message: 'Error deleting student', errors: err.errors });
+  });
 });
 
 const PORT = process.env.PORT || 3010;
