@@ -16,7 +16,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/images', (req, res) => {
     // Create an array of image URLs from /images/image-1.jpg to /images/image-14.jpg
     const imageUrls = Array.from({ length: 14 }, (_, index) => ({
-        imageUrl: `/images/image-${index + 1}.jpg`
+        imageUrl: `/images/image-${index + 1}.jpg`,
+        imageUrlCompressed: `/compressed_images/image-${index + 1}.jpg`,
     }));
 
     res.json(imageUrls);
