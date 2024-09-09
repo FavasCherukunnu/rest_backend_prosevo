@@ -1,73 +1,27 @@
 const express = require('express');
-const cors = require('cors'); // Import CORS middleware
-const app = express();
-const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
+const path = require('path');
+const cors = require('cors');
 require('dotenv').config();
 
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+const app = express();
+const port = process.env.PORT;
 
-// Enable CORS for all routes
+// Enable CORS for all origins
 app.use(cors());
 
-const studentSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true
-  },
-  age: {
-    type: Number,
-    required: true
-  },
-  class: {
-    type: String,
-    required: true
-  },
-  subject: {
-    type: String,
-    required: true
-  }
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Route to get the list of images in JSON format
+app.get('/images', (req, res) => {
+    // Create an array of image URLs from /images/image-1.jpg to /images/image-14.jpg
+    const imageUrls = Array.from({ length: 14 }, (_, index) => ({
+        imageUrl: `/images/image-${index + 1}.jpg`
+    }));
+
+    res.json(imageUrls);
 });
 
-const Student = mongoose.model('Student', studentSchema);
-
-app.use(bodyParser.json());
-
-app.get('/test', (req, res) => {
-  res.json({ message: 'Hello from the backend' });
+app.listen(port, () => {
+    console.log(`Server running at http://localhost:${port}`);
 });
-
-app.get('/students', (req, res) => {
-  const { name } = req.query;
-  const query = name ? { name: new RegExp(name, 'i') } : {};
-  Student.find(query).then(students => res.json(students));
-});
-
-app.post('/students', (req, res) => {
-  Student.create(req.body).then(student => {
-    res.json(student);
-  }).catch(err => {
-    res.status(400).json({ message: 'Error creating student', errors: err.errors });
-  });
-});
-
-app.get('/students/:id', (req, res) => {
-  Student.findById(req.params.id).then(student => res.json(student));
-});
-
-app.put('/students/:id', (req, res) => {
-  Student.findByIdAndUpdate(req.params.id, req.body, { new: true }).then(student => {
-    res.json(student);
-  }).catch(err => {
-    res.status(400).json({ message: 'Error updating student', errors: err.errors });
-  });
-});
-
-app.delete('/students/:id', (req, res) => {
-  Student.findByIdAndDelete(req.params.id).then(() => res.json({ message: 'Student deleted' })).catch(err => {
-    res.status(400).json({ message: 'Error deleting student', errors: err.errors });
-  });
-});
-
-const PORT = process.env.PORT || 3010;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
